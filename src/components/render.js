@@ -24,7 +24,7 @@ const render = (node) => {
 
     // append all children as specified in vNode.children
     //   e.g. <div id="app"><img></div>
-    if(Object.hasOwn(node, "children") && isIterable(node.children)) {
+    if(isIterable(node.children)) {
         for (const child of node.children) {
             dom_el.appendChild(render(child));
         }
