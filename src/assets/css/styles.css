@@ -1,0 +1,75 @@
+@import url(https://fonts.googleapis.com/css2?family=Rubik);
+
+:root {
+    --primary-text-color: #222;
+    --secondary-text-color: #fff;
+    --primary-bg-color: #222;
+    --secondary-bg-color: #fff;
+    --tertiary-bg-color: #ddd;
+}
+
+body {
+    background-color: var(--tertiary-bg-color);
+    color: var(--primary-text-color);
+    font-family: "Rubik", serif;
+    font-size: 1.2rem;
+    line-height: 1.6;
+}
+
+
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 2rem auto;
+    max-width: 70ch
+}
+
+.tabs .top_label {
+    background: var(--primary-bg-color);
+    color: var(--secondary-text-color);
+    cursor: pointer;
+    display: block;
+    font-weight: 600;
+    margin-right: 0.3rem;
+    order: initial;
+    padding: 1rem 2rem;
+    transition: background ease 0.3s;
+    width: 100%;
+}
+
+.tabs .tab-content {
+    background: var(--secondary-bg-color);
+    display: none;
+    flex-grow: 1;
+    padding: 1rem;
+    width: 100%;
+}
+
+.tabs input[type="radio"] {
+    display: none;
+}
+
+.tabs input[type="radio"]:checked + label {
+    background: var(--secondary-bg-color);
+    color: var(--primary-text-color)
+}
+
+.tabs input[type="radio"]:checked + label + .tab-content {
+    display: block;
+}
+
+@media (min-width: 10em) {
+    .tabs .tab-content {
+        order: 99
+    }
+
+    .tabs .top_label {
+        order: 1;
+    }
+
+    .tabs .top_label {
+        margin-right: 0.3rem;
+        margin-top: 0;
+        width: auto;
+    }
+}

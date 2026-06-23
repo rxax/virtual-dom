@@ -1,3 +1,8 @@
-How to run:
+## Ultra-lightweight Virtual Dom Implementation
 
-`npm run dev`
+
+
+
+How to run the demo:
+
+`npm run dev` then open `http://localhost:1234`

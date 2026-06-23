@@ -2,7 +2,7 @@ import isIterable from "../utils/isIterable";
 import isVdomNode from "../utils/isVdomNode";
 
 const render = (node) => {
-
+    console.log(node)
     // Render a text node
     if (typeof node === 'string') {
         return document.createTextNode(node);
@@ -10,6 +10,7 @@ const render = (node) => {
 
     // return empty text node as the Node argument is not a virtual dom node nor a text
     if(!isVdomNode(node)) {
+        console.log('invalid virtual dom')
         return document.createTextNode('');
     }
     // create the element
@@ -20,6 +21,12 @@ const render = (node) => {
     //   e.g. <div id="app"></div>
     for (const [k, v] of Object.entries(node.attrs)) {
         dom_el.setAttribute(k, v);
+    }
+
+    // Set inner text
+    console.log('x=',node.innerText)
+    if(Object.hasOwn(node,'innerText') && node.innerText != null){
+        dom_el.innerText= node.innerText;
     }
 
     // append all children as specified in vNode.children
