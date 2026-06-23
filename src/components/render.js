@@ -1,8 +1,9 @@
 import isIterable from "../utils/isIterable";
 import isVdomNode from "../utils/isVdomNode";
+import {onComponentUpdate} from "./handlers";
 
 const render = (node) => {
-    console.log(node)
+    //console.log(node)
     // Render a text node
     if (typeof node === 'string') {
         return document.createTextNode(node);
@@ -24,9 +25,9 @@ const render = (node) => {
     }
 
     // Set inner text
-    console.log('x=',node.innerText)
+    //console.log('x=',node.innerText)
     if(Object.hasOwn(node,'innerText') && node.innerText != null){
-        dom_el.innerText= node.innerText;
+        dom_el.innerText=node.innerText;
     }
 
     // append all children as specified in vNode.children
@@ -36,6 +37,12 @@ const render = (node) => {
             dom_el.appendChild(render(child));
         }
     }
+
+    //Attach listeners
+    // listen to component changes
+    "keypress input click".split(" ").forEach((event)=>{
+        dom_el.addEventListener(event, (event) => onComponentUpdate(event, node), false);
+    });
 
     // Return the dom elements
     return dom_el;

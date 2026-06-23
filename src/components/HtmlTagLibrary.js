@@ -1,3 +1,4 @@
+
 // Constants
 export const EMPTY = null;
 
@@ -51,13 +52,13 @@ export const Button = (text, attrs, children) => {
 export const Label = (text, attrs, children) => HTMLTagWithInnerText ('label', text, attrs, children);
 
 // Labeled Input
-export const LabeledInput = (labelText, button_attrs, button_children, group_attrs={}) => {
+export const LabeledInput = (labelText, button_attrs, group_attrs={}) => {
     // set for value for the label
     if(!Object.hasOwn(button_attrs, 'id')) {
         button_attrs.id = uid();
     }
     const label_node = Label(labelText, { 'for': button_attrs.id }, null);
-    const input_node = Input(button_attrs, button_children);
+    const input_node = Input(button_attrs, null);
 
     return HtmlTag('div', { attrs:group_attrs, children:[ label_node, input_node] });
 }
@@ -66,3 +67,4 @@ export const LabeledInput = (labelText, button_attrs, button_children, group_att
 export const App = ({ attrs = {}, children = [] } = {}) => {
     return HtmlTag('div', { attrs:attrs, children: children });
 }
+

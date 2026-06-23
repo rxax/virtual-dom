@@ -15,14 +15,14 @@ How to run the demo:
 
 ```js
 const forms = HtmlTag('form', {
-        children: [
-            H3Tag('A simple form example'),
-            LabeledInput('Full name', {placeholder:'Enter Your Name',...BOOTSTRAP.FORM_CTRL}, EMPTY, BOOTSTRAP.FORM_GROUP),
-            LabeledInput('E-mail', {placeholder:'Enter Email',...BOOTSTRAP.FORM_CTRL}, EMPTY, BOOTSTRAP.FORM_GROUP),
-            LabeledInput('City', {... BOOTSTRAP.FORM_CTRL}, EMPTY, BOOTSTRAP.FORM_GROUP),
-            Button('Send', {class:'btn btn-default'}),
-        ]
-    });
+    children: [
+        H3Tag('A simple form example'),
+        LabeledInput('Full name', {placeholder:'Enter Your Name',...BOOTSTRAP.FORM_CTRL},  BOOTSTRAP.FORM_GROUP),
+        LabeledInput('E-mail', {placeholder:'Enter Email',...BOOTSTRAP.FORM_CTRL},  BOOTSTRAP.FORM_GROUP),
+        LabeledInput('City', {... BOOTSTRAP.FORM_CTRL}, BOOTSTRAP.FORM_GROUP),
+        Button('Send', {class:'btn btn-default'}),
+    ]
+});
 ```
 
 #### Create the App
