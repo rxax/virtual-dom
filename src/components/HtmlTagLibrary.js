@@ -1,3 +1,7 @@
+// Constants
+export const EMPTY = null;
+
+// Generate random UID
 const uid = function(){
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
@@ -56,4 +60,9 @@ export const LabeledInput = (labelText, button_attrs, button_children, group_att
     const input_node = Input(button_attrs, button_children);
 
     return HtmlTag('div', { attrs:group_attrs, children:[ label_node, input_node] });
+}
+
+// Entry point
+export const App = ({ attrs = {}, children = [] } = {}) => {
+    return HtmlTag('div', { attrs:attrs, children: children });
 }
