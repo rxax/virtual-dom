@@ -1,122 +1,152 @@
 import render from './render';
+import isVdomNode from '../utils/isVdomNode';
 
-const zip = (xs, ys) => {
-    const zipped = [];
-    for (let i = 0; i < Math.min(xs.length, ys.length); i++) {
-        zipped.push([xs[i], ys[i]]);
-    }
-    return zipped;
-};
+const isTextNode = (value) => typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean';
 
-const diffAttrs = (oldAttrs, newAttrs) => {
-    // Handle different attributes
-    const patches = [];
+const diffAttrs = (oldAttrs = {}, newAttrs = {}) => {
+    const oldKeys = Object.keys(oldAttrs || {});
+    const newKeys = Object.keys(newAttrs || {});
 
-    // setting newAttrs
-    for (const [k, v] of Object.entries(newAttrs)) {
-        patches.push(node => {
-            node.setAttribute(k, v);
-            return node;
-        });
-    }
+    return (node) => {
+        for (const key of newKeys) {
+            const nextValue = newAttrs[key];
+            const previousValue = oldAttrs[key];
 
-    // removing attrs
-    for (const k in oldAttrs) {
-        if (!(k in newAttrs)) {
-            patches.push(node => {
-                node.removeAttribute(k);
-                return node;
-            });
+            if (previousValue !== nextValue) {
+                if (nextValue === null || nextValue === undefined || nextValue === false) {
+                    node.removeAttribute(key);
+                } else if (nextValue === true) {
+                    node.setAttribute(key, '');
+                } else {
+                    node.setAttribute(key, String(nextValue));
+                }
+            }
         }
-    }
 
-    return node => {
-        for (const patch of patches) {
-            patch(node);
+        for (const key of oldKeys) {
+            if (!(key in (newAttrs || {}))) {
+                node.removeAttribute(key);
+            }
         }
+
         return node;
     };
 };
 
-const diffChildren = (oldVChildren, newVChildren) => {
-    const childPatches = [];
-    oldVChildren.forEach((oldVChild, i) => {
-        childPatches.push(diff(oldVChild, newVChildren[i]));
-    });
+const diffChildren = (oldChildren = [], newChildren = []) => {
+    return (node) => {
+        const maxLength = Math.max(oldChildren.length, newChildren.length);
 
-    const additionalPatches = [];
-    for (const additionalVChild of newVChildren.slice(oldVChildren.length)) {
-        additionalPatches.push($node => {
-            $node.appendChild(render(additionalVChild));
-            return $node;
-        });
-    }
+        for (let index = 0; index < maxLength; index += 1) {
+            const oldChild = oldChildren[index];
+            const newChild = newChildren[index];
+            const childNode = node.childNodes[index];
 
-    return $parent => {
-        // since childPatches are expecting the $child, not $parent,
-        // we cannot just loop through them and call patch($parent)
-        for (const [patch, $child] of zip(childPatches, $parent.childNodes)) {
-            patch($child);
+            if (newChild === undefined) {
+                if (childNode) {
+                    childNode.remove();
+                }
+                continue;
+            }
+
+            if (oldChild === undefined) {
+                node.appendChild(render(newChild));
+                continue;
+            }
+
+            if (childNode) {
+                const patch = diff(oldChild, newChild);
+                if (patch) {
+                    patch(childNode);
+                }
+            }
         }
 
-        for (const patch of additionalPatches) {
-            patch($parent);
-        }
-        return $parent;
+        return node;
     };
 };
 
 const diff = (oldVirtualTree, newVirtualTree) => {
-    if (typeof oldVTree === 'undefined') {
-        // oldVirtualTree is null, return undefined
-        return undefined;
-    }
-    if (newVirtualTree === undefined) {
-        return node => {
-            node.remove();
-            // new virtual tree is null, return undefined
-            return undefined;
-        }
+    if (oldVirtualTree === newVirtualTree) {
+        return (node) => node;
     }
 
-    if (typeof oldVirtualTree === 'string' ||
-        typeof newVirtualTree === 'string') {
-        if (oldVirtualTree !== newVirtualTree) {
-            // for text nodes render the new virtual tree
-            return node => {
-                const newNode = render(newVirtualTree);
-                node.replaceWith(newNode);
-                return newNode;
-            };
-        } else {
-            // both trees have the same value
-            return node => node;
-        }
-    }
-
-    if (oldVirtualTree.tagName !== newVirtualTree.tagName) {
-        // render the newVTree and mount it.
-        return node => {
-            const newNode = render(newVirtualTree);
-            node.replaceWith(newNode);
-            return newNode;
+    if (oldVirtualTree === undefined || oldVirtualTree === null) {
+        return (node) => {
+            const replacement = render(newVirtualTree);
+            if (node && node.replaceWith) {
+                node.replaceWith(replacement);
+                return replacement;
+            }
+            return replacement;
         };
     }
 
-    //At this point:
-    /*
-    oldVirtualTree and newVirtualTree are both virtual elements.
-    They have the same tagName.
-    They might have different attrs and children.
-     */
+    if (newVirtualTree === undefined || newVirtualTree === null) {
+        return (node) => {
+            if (node && node.remove) {
+                node.remove();
+            }
+            return undefined;
+        };
+    }
+
+    if (isTextNode(oldVirtualTree) || isTextNode(newVirtualTree)) {
+        if (String(oldVirtualTree) !== String(newVirtualTree)) {
+            return (node) => {
+                const replacement = render(newVirtualTree);
+                if (node && node.replaceWith) {
+                    node.replaceWith(replacement);
+                    return replacement;
+                }
+                return replacement;
+            };
+        }
+
+        return (node) => node;
+    }
+
+    if (!isVdomNode(oldVirtualTree) || !isVdomNode(newVirtualTree)) {
+        return (node) => {
+            const replacement = render(newVirtualTree);
+            if (node && node.replaceWith) {
+                node.replaceWith(replacement);
+                return replacement;
+            }
+            return replacement;
+        };
+    }
+
+    if (oldVirtualTree.tagName !== newVirtualTree.tagName) {
+        return (node) => {
+            const replacement = render(newVirtualTree);
+            if (node && node.replaceWith) {
+                node.replaceWith(replacement);
+                return replacement;
+            }
+            return replacement;
+        };
+    }
+
     const patchAttrs = diffAttrs(oldVirtualTree.attrs, newVirtualTree.attrs);
     const patchChildren = diffChildren(oldVirtualTree.children, newVirtualTree.children);
 
-    return node => {
+    return (node) => {
+        if (node && oldVirtualTree.innerText !== newVirtualTree.innerText) {
+            node.textContent = newVirtualTree.innerText === null || newVirtualTree.innerText === undefined
+                ? ''
+                : String(newVirtualTree.innerText);
+        }
+
         patchAttrs(node);
         patchChildren(node);
         return node;
     };
+};
+
+export const patch = (node, oldVirtualTree, newVirtualTree) => {
+    const patchFn = diff(oldVirtualTree, newVirtualTree);
+    return patchFn(node);
 };
 
 export default diff;

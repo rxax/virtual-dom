@@ -1,12 +1,13 @@
 import isObject from "./isObject";
 
 const isVDomNode = (node) => {
-    const validNodeKeys = ['tagName','attrs','children','innerText']
-    let success = false;
-    if(isObject(node)){
-        success = Object.keys(node).every((val) => validNodeKeys.includes(val))
+    if (!isObject(node) || Array.isArray(node)) {
+        return false;
     }
-    return success;
-}
+
+    return typeof node.tagName === 'string' &&
+        node.attrs !== undefined &&
+        node.children !== undefined;
+};
 
 export default isVDomNode;

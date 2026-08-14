@@ -2,50 +2,70 @@ import isIterable from "../utils/isIterable";
 import isVdomNode from "../utils/isVdomNode";
 import {onComponentUpdate} from "./handlers";
 
-const render = (node) => {
-    //console.log(node)
-    // Render a text node
-    if (typeof node === 'string') {
-        return document.createTextNode(node);
+const normalizeChildren = (children) => {
+    if (children === null || children === undefined) {
+        return [];
     }
 
-    // return empty text node as the Node argument is not a virtual dom node nor a text
-    if(!isVdomNode(node)) {
-        console.log('invalid virtual dom')
+    if (Array.isArray(children)) {
+        return children.flat();
+    }
+
+    return [children];
+};
+
+const setAttribute = (element, key, value) => {
+    if (value === null || value === undefined || value === false) {
+        element.removeAttribute(key);
+        return;
+    }
+
+    if (value === true) {
+        element.setAttribute(key, '');
+        return;
+    }
+
+    element.setAttribute(key, String(value));
+};
+
+const render = (node) => {
+    if (node === null || node === undefined) {
         return document.createTextNode('');
     }
-    // create the element
-    //   e.g. <a></a>
-    const dom_el = document.createElement(node.tagName);
 
-    // add all attributes as specified in node.attrs
-    //   e.g. <div id="app"></div>
-    for (const [k, v] of Object.entries(node.attrs)) {
-        dom_el.setAttribute(k, v);
+    if (typeof node === 'string' || typeof node === 'number' || typeof node === 'boolean') {
+        return document.createTextNode(String(node));
     }
 
-    // Set inner text
-    //console.log('x=',node.innerText)
-    if(Object.hasOwn(node,'innerText') && node.innerText != null){
-        dom_el.innerText=node.innerText;
+    if (Array.isArray(node)) {
+        const fragment = document.createDocumentFragment();
+        node.forEach((child) => fragment.appendChild(render(child)));
+        return fragment;
     }
 
-    // append all children as specified in vNode.children
-    //   e.g. <div id="app"><img></div>
-    if(isIterable(node.children)) {
-        for (const child of node.children) {
-            dom_el.appendChild(render(child));
-        }
+    if (!isVdomNode(node)) {
+        return document.createTextNode('');
     }
 
-    //Attach listeners
-    // listen to component changes
-    "keypress input click".split(" ").forEach((event)=>{
-        dom_el.addEventListener(event, (event) => onComponentUpdate(event, node), false);
+    const domEl = document.createElement(node.tagName);
+
+    for (const [key, value] of Object.entries(node.attrs || {})) {
+        setAttribute(domEl, key, value);
+    }
+
+    if (node.innerText !== null && node.innerText !== undefined) {
+        domEl.textContent = String(node.innerText);
+    }
+
+    for (const child of normalizeChildren(node.children)) {
+        domEl.appendChild(render(child));
+    }
+
+    "keypress input click".split(" ").forEach((event) => {
+        domEl.addEventListener(event, (event) => onComponentUpdate(event, node), false);
     });
 
-    // Return the dom elements
-    return dom_el;
+    return domEl;
 };
 
 export default render;

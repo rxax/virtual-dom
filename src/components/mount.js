@@ -1,4 +1,8 @@
+import render from './render';
+
 export default (node, target) => {
-    target.replaceWith(node);
-    return node;
+    const rendered = render(node);
+    target.innerHTML = '';
+    target.appendChild(rendered);
+    return target;
 };
